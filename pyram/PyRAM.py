@@ -117,6 +117,7 @@ class PyRAM:
                 (outpt(self.r, self.mdr, self._ndr, self._ndz, self.tlc, self.f3,
                        self.u, self.dir, self.ir, self.tll, self.tlg, self.cpl, self.cpg)[:])
 
+        self.cpg = self.cpg*numpy.exp(-complex(0,1)*self.k0*self.vr) / numpy.sqrt(self.vr)
         self.proc_time = process_time() - t0
 
         results = {'ID': self._id,
