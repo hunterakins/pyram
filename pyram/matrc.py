@@ -1,4 +1,4 @@
-'''solve function definition'''
+'''matrc function definition'''
 
 from numba import jit, float64, int64, complex128
 
