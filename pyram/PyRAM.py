@@ -41,6 +41,7 @@ class PyRAM:
     _ns_default = 1
     _lyrw_default = 20
     _id_default = 0
+    _source_default = 'point'
 
     def __init__(self, freq, zs, zr, z_ss, rp_ss, cw, z_sb, rp_sb, cb, rhob,
                  attn, rbzb, **kwargs):
@@ -117,7 +118,15 @@ class PyRAM:
                 (outpt(self.r, self.mdr, self._ndr, self._ndz, self.tlc, self.f3,
                        self.u, self.dir, self.ir, self.tll, self.tlg, self.cpl, self.cpg)[:])
 
-        self.cpg = self.cpg*numpy.exp(-complex(0,1)*self.k0*self.vr) / numpy.sqrt(self.vr)
+        if self._source == 'point':
+            hankel = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/4)) / numpy.sqrt(self.vr)
+            self.cpg = self.cpg*hankel
+            self.cpl = self.cpl*hankel
+        elif self._source == 'line':
+            exp_factor = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/4))/numpy.sqrt(8*numpy.pi)
+            self.cpg = self.cpg*exp_factor
+            self.cpl = self.cpl*exp_factor
+
         self.proc_time = process_time() - t0
 
         results = {'ID': self._id,
@@ -213,6 +222,8 @@ class PyRAM:
         self._lyrw = kwargs.get('lyrw', PyRAM._lyrw_default)
 
         self._id = kwargs.get('id', PyRAM._id_default)
+       
+        self._source = kwargs.get('source', PyRAM._source_default)
 
         self.proc_time = None
 
@@ -385,6 +396,12 @@ class PyRAM:
                   self.s1, self.s2, self.s3, self.pd1, self.pd2)
 
     def selfs(self):
+        if self._source == 'point':
+            ip = 2 # sets the pade coefficients for (1+X)^3/4 operator
+        elif self._source == 'line': 
+            ip = 3 # sets ... for (1+X)^1/2 operator (Mike Collins self-starter paper)
+        else:
+            raise ValueError('Source options are point or line, not ', self._source)
 
         '''The self-starter'''
 
@@ -412,9 +429,9 @@ class PyRAM:
             solve(self.u, self.v, self.s1, self.s2, self.s3,
                   self.r1, self.r2, self.r3, self.iz, self.nz, 1)
 
-        # Apply the operator (1-X)**2*(1+X)**(-1/4)*exp(ci*k0*r*sqrt(1+X))
+        # Apply the operator (1-X)**2*(1+X)**(-1/4)*exp(ci*k0*r*sqrt(1+X)) if 3d or (1-X)^2*(1+X)-1/2
 
-        self.epade(ip=2)
+        self.epade(ip=ip)
         matrc(self.k0, self._dz, self.iz, self.iz, self.nz, self._np,
               self.f1, self.f2, self.f3, self.ksq, self.alpw, self.alpb,
               self.ksqw, self.ksqb, self.rhob, self.r1, self.r2, self.r3,
@@ -439,8 +456,12 @@ class PyRAM:
 
         if ip == 1:
             nu, alp = 0, 0
-        else:
+        elif ip == 2:
             nu, alp = 1, -0.25
+        elif ip == 3:
+            nu, alp = 1, -0.5
+        else:
+            raise ValueError('Not implemented')
 
         # The factorials
         fact[0] = 1

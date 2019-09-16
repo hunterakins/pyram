@@ -1,4 +1,5 @@
-'''matrc function definition'''
+'''matrc function definitioni
+Populate tridiagonal matrix for solve'''
 
 from numba import jit, float64, int64, complex128
 
