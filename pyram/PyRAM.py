@@ -27,9 +27,9 @@ and depth steps (though these can be overridden using keyword arguments).
 
 import numpy
 from time import process_time
-from pyram.matrc import matrc
-from pyram.solve import solve
-from pyram.outpt import outpt
+from pyram.pyram.matrc import matrc
+from pyram.pyram.solve import solve
+from pyram.pyram.outpt import outpt
 
 
 class PyRAM:
@@ -119,11 +119,11 @@ class PyRAM:
                        self.u, self.dir, self.ir, self.tll, self.tlg, self.cpl, self.cpg)[:])
 
         if self._source == 'point':
-            hankel = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/4)) / numpy.sqrt(self.vr)
+            hankel = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/2)) / numpy.sqrt(self.vr)
             self.cpg = self.cpg*hankel
             self.cpl = self.cpl*hankel
         elif self._source == 'line':
-            exp_factor = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/4))/numpy.sqrt(8*numpy.pi)
+            exp_factor = numpy.exp(complex(0,1)*(self.k0*self.vr-numpy.pi/2))/numpy.sqrt(8*numpy.pi)
             self.cpg = self.cpg*exp_factor
             self.cpl = self.cpl*exp_factor
 
